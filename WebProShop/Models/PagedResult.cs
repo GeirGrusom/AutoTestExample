@@ -4,4 +4,4 @@
 
 namespace WebProShop.Models;
 
-public sealed record PagedResult<T>(List<T> Items, int TotalCount);
+public sealed record PagedResult<T>(IAsyncEnumerable<T> Items, int TotalCount);

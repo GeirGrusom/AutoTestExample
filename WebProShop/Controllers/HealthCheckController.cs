@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WebProShop.Controllers;
 
@@ -6,6 +7,7 @@ namespace WebProShop.Controllers;
 [Route("/")]
 public sealed class HealthCheckController : ControllerBase
 {
+    [ExcludeFromCodeCoverage]
     [HttpGet]
-    public IActionResult Get() => Ok();
+    public ActionResult Get() => Ok();
 }

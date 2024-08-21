@@ -35,7 +35,7 @@ public class ListProductsControllerTests
     }
 
     [Test]
-    public async Task Get_TakeOne_ReturnsOkObjectResult()
+    public async Task Get_TakeOne_ReturnsActualResult()
     {
         // Arrange
         var (_, controller) = Init();
@@ -44,7 +44,7 @@ public class ListProductsControllerTests
         var result = await controller.Get(1, 0);
 
         // Assert
-        Assert.That(result, Is.InstanceOf<OkObjectResult>());
+        Assert.That(result.Value, Is.Not.Null);
     }
 
     [Test]
@@ -57,7 +57,7 @@ public class ListProductsControllerTests
         var result = await controller.Get(1, 0);
 
         // Assert
-        var item = ((OkObjectResult)result).Value;
+        var item = result.Value;
         Assert.That(item, Is.InstanceOf<PagedResult<ProductResult>>());
     }
 
@@ -72,7 +72,7 @@ public class ListProductsControllerTests
         var result = await controller.Get(1, 0);
 
         // Assert
-        var item = (PagedResult<ProductResult>)((OkObjectResult)result).Value;
+        var item = result.Value;
         Assert.That(item!.Items, Is.EquivalentTo(new [] { expected }));
     }
 }

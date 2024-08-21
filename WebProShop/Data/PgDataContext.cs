@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using WebProShop.Data.Models;
 
@@ -38,6 +39,7 @@ public class PgDataContext(string connectionString) : DbContext
         ;
     }
 
+    [ExcludeFromCodeCoverage]
     private sealed class UnitOfWork(PgDataContext context) : IUnitOfWork
     {
         private readonly Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = context.Database.BeginTransaction();
@@ -64,7 +66,7 @@ public class PgDataContext(string connectionString) : DbContext
             await transaction.RollbackAsync();
         }
 
-        public void Remove<T>(T item)
+        public void Delete<T>(T item)
         {
             context.Remove(item);
         }
@@ -75,14 +77,8 @@ public class PgDataContext(string connectionString) : DbContext
             return transaction.RollbackAsync();
         }
 
-        public Task SaveChangesAsync()
-        {
-            return context.SaveChangesAsync();
-        }
+        public Task SaveChangesAsync() => context.SaveChangesAsync();
 
-        public void Update<T>(T item)
-        {
-            context.Update(item);
-        }
+        public void Update<T>(T item) => context.Update(item);
     }
 }

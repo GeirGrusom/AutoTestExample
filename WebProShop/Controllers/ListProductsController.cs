@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -11,15 +12,18 @@ namespace WebProShop.Controllers;
 
 [ApiController]
 [Route("products")]
+[Tags("Product")]
+[Produces("application/json")]
 public sealed class ListProductsController(IQueryable<Product> products) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> Get([FromQuery]int pageSize = 20, [FromQuery]int page = 0)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<PagedResult<ProductResult>>> Get([FromQuery]int pageSize = 20, [FromQuery]int page = 0)
     {
         var totalCount = await products.CountAsync();
 
-        return Ok(new PagedResult<ProductResult>( await products.Skip(page * pageSize).Take(pageSize).Select(Map).ToListAsync(), totalCount));
+        return new PagedResult<ProductResult>(products.Skip(page * pageSize).Take(pageSize).Select(Mapping.Product()).AsAsyncEnumerable(), totalCount);
     }
 
-    private static readonly Expression<Func<Product, ProductResult>> Map = p => new ProductResult(p.Id, p.Name, p.Description, p.Price);
+
 }

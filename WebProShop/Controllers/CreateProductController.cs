@@ -13,9 +13,10 @@ namespace WebProShop.Controllers;
 
 [ApiController]
 [Route("products")]
+[Tags("Product")]
 public sealed class CreateProductController(IQueryable<Product> products, IUnitOfWork unitOfWork) : ControllerBase
 {
-    [ProducesResponseType<ProductResult>(StatusCodes.Status201Created)]
+    [ProducesResponseType<ProductResult>(StatusCodes.Status201Created, contentType: "application/json")]
     [HttpPost]
     public async Task<IActionResult> Create(CreateProduct product)
     {
@@ -28,6 +29,8 @@ public sealed class CreateProductController(IQueryable<Product> products, IUnitO
         unitOfWork.Add(result);
 
         await unitOfWork.SaveChangesAsync();
+
+        await unitOfWork.CommitAsync();
 
         return Created($"products/{result.Id:N}", new ProductResult(result.Id, result.Name, result.Description, result.Price));
     }

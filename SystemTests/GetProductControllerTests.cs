@@ -5,6 +5,7 @@ using RestSharp;
 using RestSharp.Serializers.Json;
 using Testcontainers.PostgreSql;
 using WebProShop;
+using WebProShop.Controllers;
 using WebProShop.Models;
 
 namespace SystemTests;
@@ -94,5 +95,19 @@ public class GetProductControllerTests
 
         // Assert
         Assert.That(result.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.NotFound));
+    }
+
+    [Test]
+    public async Task Get_ProductIsReturned()
+    {
+        // Arrange
+        var client = CreateClient();
+        var created = await client.PostJsonAsync<CreateProduct, ProductResult>("/products", new CreateProduct("Test", "Desc", 100m));
+
+        // Act
+        var theProduct = await client.ExecuteGetAsync<ProductResult>($"/products/{created.Id:N}");
+
+        // Assert
+        Assert.That(theProduct.IsSuccessful);
     }
 }

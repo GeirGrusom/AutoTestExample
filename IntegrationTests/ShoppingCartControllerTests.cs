@@ -22,15 +22,15 @@ public class ShoppingCartControllerTests : PostgreDbContextBase
             ExampleProduct = new Product(Guid.NewGuid()) { Name = "Foo Soap", Description = "Soap with smell of foo", Price = 10m };
         }
 
-        public ShoppingCartController GetSubject()
+        public UpdateShoppingCartController GetSubject()
         {
             Context.Add(ExampleProduct);
             Context.SaveChanges();
-            return new ShoppingCartController(Context.Set<ShoppingCart>());
+            return new UpdateShoppingCartController(Context.Set<ShoppingCart>(), Context.CreateUnitOfWork());
         }
     }
 
-    (ShoppingCartController controller, State state) Init()
+    (UpdateShoppingCartController controller, State state) Init()
     {
         var ctx = GetContext();
         var state = new State(ctx);
@@ -47,7 +47,7 @@ public class ShoppingCartControllerTests : PostgreDbContextBase
             await state.Context.SaveChangesAsync();
 
             // Act
-            await controller.Put(shoppingCart.Id, new UpdateShoppingCartRequest(new() { [state.ExampleProduct.Id] = 5 }), state.Context.CreateUnitOfWork());
+            await controller.Update(shoppingCart.Id, new UpdateShoppingCartRequest(new() { [state.ExampleProduct.Id] = 5 }));
 
             // Assert
             var result = state.Context.Set<ShoppingCart>().Single(s => s.Id == shoppingCart.Id);

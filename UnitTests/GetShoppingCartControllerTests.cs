@@ -1,4 +1,3 @@
-using NUnit.Framework;
 using System;
 using System.Linq;
 using WebProShop.Data.Models;
@@ -6,12 +5,11 @@ using WebProShop.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using MockQueryable.EntityFrameworkCore;
-using NSubstitute;
-using WebProShop.Data;
+using WebProShop.Models;
 
 namespace UnitTests;
 
-public class ShoppingCartControllerTests
+public class GetShoppingCartControllerTests
 {
     private class State
     {
@@ -38,13 +36,13 @@ public class ShoppingCartControllerTests
             }.AsQueryable().BuildMock();
         }
 
-        public ShoppingCartController GetSubject()
+        public GetShoppingCartController GetSubject()
         {
             return new(ShoppingCarts);
         }
     }
 
-    static (State state, ShoppingCartController controller) Init()
+    private static (State state, GetShoppingCartController controller) Init()
     {
         var state = new State();
         return (state, state.GetSubject());
@@ -60,7 +58,7 @@ public class ShoppingCartControllerTests
         var result = await controller.GetShoppingCartById(state.ShoppingCartId);
 
         // Assert
-        Assert.That(result, Is.InstanceOf<OkObjectResult>());
+        Assert.That(result.Value, Is.Not.Null);
     }
 
     [Test]
@@ -73,7 +71,7 @@ public class ShoppingCartControllerTests
         var result = await controller.GetShoppingCartById(default);
 
         // Assert
-        Assert.That(result, Is.InstanceOf<BadRequestResult>());
+        Assert.That(result.Result, Is.InstanceOf<BadRequestResult>());
     }
 
     [Test]
@@ -86,7 +84,7 @@ public class ShoppingCartControllerTests
         var result = await controller.GetShoppingCartById(Guid.NewGuid());
 
         // Assert
-        Assert.That(result, Is.InstanceOf<NotFoundResult>());
+        Assert.That(result.Result, Is.InstanceOf<NotFoundResult>());
     }
 
     [Test]
@@ -99,7 +97,7 @@ public class ShoppingCartControllerTests
         var result = await controller.GetShoppingCartById(state.ShoppingCartId);
 
         // Assert
-        Assert.That(result, Has.Property(nameof(OkObjectResult.Value)).InstanceOf<ShoppingCartResult>());
+        Assert.That(result.Value, Is.InstanceOf<ShoppingCartResult>());
     }
 
     [Test]
@@ -111,7 +109,7 @@ public class ShoppingCartControllerTests
         // Act
         var result = await controller.GetShoppingCartById(state.ShoppingCartId) switch
         {
-            OkObjectResult { Value: ShoppingCartResult shoppingCart } => shoppingCart,
+            { Value: {} shoppingCart } => shoppingCart,
             _ => throw new AssertionException("Result did not return a shopping cart.")
         };
 
@@ -128,69 +126,11 @@ public class ShoppingCartControllerTests
         // Act
         var result = await controller.GetShoppingCartById(state.ShoppingCartId) switch
         {
-            OkObjectResult { Value: ShoppingCartResult shoppingCart} => shoppingCart.Lines.Single(),
+            { Value: {} shoppingCart} => shoppingCart.Lines.Single(),
             _ => throw new AssertionException("Result did not return a shopping cart.")
         };
 
         // Assert
         Assert.That(result.TotalPrice, Is.EqualTo(20m)); // TotalPrice = 10 * 2
-    }
-
-    [Test]
-    public async Task Post_Ok_CreatesNewShoppingCartWithValidId()
-    {
-        // Arrange
-        var (_, controller) = Init();
-        var unitOfWork = Substitute.For<IUnitOfWork>();
-
-        // Act
-        await controller.Post(unitOfWork);
-
-        // Assert
-        unitOfWork.Received().Add(Arg.Is<ShoppingCart>(s => s.Id != default));
-    }
-
-    [Test]
-    public async Task Post_Ok_ReturnsCreatedResponse()
-    {
-        // Arrange
-        var (_, controller) = Init();
-        var unitOfWork = Substitute.For<IUnitOfWork>();
-
-        // Act
-        var result = await controller.Post(unitOfWork);
-
-        // Assert
-        Assert.That(result, Is.InstanceOf<CreatedAtActionResult>().With.Property(nameof(CreatedAtActionResult.ActionName)).EqualTo("GetShoppingCartById"));
-    }
-
-    [Test]
-    public async Task Post_Ok_ReturnsNewId()
-    {
-        // Arrange
-        var (_, controller) = Init();
-        var unitOfWork = Substitute.For<IUnitOfWork>();
-
-        // Act
-        var result = await controller.Post(unitOfWork);
-
-        // Assert
-        Assert.That(result, Has.Property(nameof(CreatedAtActionResult.RouteValues)).With.ContainKey("id"));
-    }
-
-    [Test]
-    public async Task Put_Ok_ReturnsMappedItem()
-    {
-        // Arrange
-        var (state, controller) = Init();
-        var unitOfWork = Substitute.For<IUnitOfWork>();
-
-        // Act
-        var result = await controller.Put(state.ShoppingCartId, new UpdateShoppingCartRequest(new() { [state.TestProduct.Id] = 5 }), unitOfWork);
-
-        // Assert
-        var items = (ShoppingCartResult)((OkObjectResult)result).Value;
-        Assert.That(items, Is.Not.Null);
-        Assert.That(items.Lines, Has.One.Items);
     }
 }

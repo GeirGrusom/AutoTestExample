@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace WebProShop.Controllers;
 
 [ApiController]
 [Route("products")]
+[Tags("Product")]
 public sealed class GetProductController(IQueryable<Product> products) : ControllerBase
 {
     [HttpGet("{id:Guid}")]
