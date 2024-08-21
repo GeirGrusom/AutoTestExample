@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using MockQueryable.EntityFrameworkCore;
-using NUnit.Framework;
 using WebProShop.Controllers;
 using WebProShop.Data.Models;
 using WebProShop.Models;

@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WebProShop\WebProShop.csproj" />
+    <ProjectReference Include="..\..\src\WebProShop\WebProShop.csproj" />
   </ItemGroup>
 
 </Project>

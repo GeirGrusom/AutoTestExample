@@ -3,4 +3,4 @@
 
 namespace WebProShop.Models;
 
-public record ProductResult(Guid Id, string Name, string Description, decimal Price);
+public sealed record ProductResult(Guid Id, string Name, string Description, decimal Price);

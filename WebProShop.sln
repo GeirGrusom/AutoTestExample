@@ -3,13 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31229.75
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebProShop", "WebProShop\WebProShop.csproj", "{E52A79FD-8C28-4625-970A-FEC78B793C32}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebProShop", "src\WebProShop\WebProShop.csproj", "{E52A79FD-8C28-4625-970A-FEC78B793C32}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{58ED20FC-B3A6-4072-9A84-E6C2DCA6BF57}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "tests\UnitTests\UnitTests.csproj", "{58ED20FC-B3A6-4072-9A84-E6C2DCA6BF57}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "IntegrationTests\IntegrationTests.csproj", "{41B0B3F5-7299-427C-A591-1E2045FEADFC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "tests\IntegrationTests\IntegrationTests.csproj", "{41B0B3F5-7299-427C-A591-1E2045FEADFC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SystemTests", "SystemTests\SystemTests.csproj", "{F171B611-84EE-445B-BD37-7E9DE1970F97}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SystemTests", "tests\SystemTests\SystemTests.csproj", "{F171B611-84EE-445B-BD37-7E9DE1970F97}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{EF1962D6-B3BC-4607-8BBC-5DC53B05B1B0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0A5A4713-58CC-4DC7-8E31-2C1383ABEFDB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,5 +43,11 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F578E9AD-2AD3-4991-93CF-1443C8A0A65B}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E52A79FD-8C28-4625-970A-FEC78B793C32} = {EF1962D6-B3BC-4607-8BBC-5DC53B05B1B0}
+		{41B0B3F5-7299-427C-A591-1E2045FEADFC} = {0A5A4713-58CC-4DC7-8E31-2C1383ABEFDB}
+		{F171B611-84EE-445B-BD37-7E9DE1970F97} = {0A5A4713-58CC-4DC7-8E31-2C1383ABEFDB}
+		{58ED20FC-B3A6-4072-9A84-E6C2DCA6BF57} = {0A5A4713-58CC-4DC7-8E31-2C1383ABEFDB}
 	EndGlobalSection
 EndGlobal

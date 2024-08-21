@@ -56,14 +56,14 @@ public class PgDataContext(string connectionString) : DbContext
             return transaction.CommitAsync();
         }
 
-        public async ValueTask DisposeAsync()
+        public ValueTask DisposeAsync()
         {
             if(isCommitted)
             {
-                return;
+                return new ValueTask();
             }
 
-            await transaction.RollbackAsync();
+            return new ValueTask(transaction.RollbackAsync());
         }
 
         public void Delete<T>(T item)

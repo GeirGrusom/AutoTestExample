@@ -44,7 +44,7 @@ public class DeleteProductControllerTests
         var result = await controller.Delete(Guid.Parse("ba42d2b7-4752-4f40-aa10-7eb881d24134"));
 
         // Assert
-        Assert.That(result.Result, Is.InstanceOf<NotFoundResult>());
+        Assert.That(result.Result, Is.InstanceOf<NotFoundObjectResult>());
     }
 
     [Test]

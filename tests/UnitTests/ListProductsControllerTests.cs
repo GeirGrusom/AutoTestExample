@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
 using MockQueryable.EntityFrameworkCore;
-using NUnit.Framework;
 using System;
 using System.Linq;
 using System.Threading.Tasks;

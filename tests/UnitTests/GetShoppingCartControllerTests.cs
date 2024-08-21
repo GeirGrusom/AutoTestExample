@@ -84,7 +84,7 @@ public class GetShoppingCartControllerTests
         var result = await controller.GetShoppingCartById(Guid.NewGuid());
 
         // Assert
-        Assert.That(result.Result, Is.InstanceOf<NotFoundResult>());
+        Assert.That(result.Result, Is.InstanceOf<NotFoundObjectResult>());
     }
 
     [Test]

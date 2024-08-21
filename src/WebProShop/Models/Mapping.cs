@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Linq.Expressions;
-using WebProShop.Controllers;
 using WebProShop.Data.Models;
 
 namespace WebProShop.Models;

@@ -19,13 +19,14 @@ public class DeleteProductController(IQueryable<Product> products, IUnitOfWork u
 {
     [HttpDelete("{id:Guid}")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesErrorResponseType(typeof(void))]
     public async Task<ActionResult<ProductResult>> Delete(Guid id)
     {
         var productToDelete = await products.SingleOrDefaultAsync(x => x.Id == id);
 
         if(productToDelete is null)
         {
-            return NotFound();
+            return NotFound(new ProblemDetails { Title = "Product not found", Status = 404, Detail = $"Product with Id {id:N} could not be found"});
         }
 
         unitOfWork.Delete(productToDelete);
