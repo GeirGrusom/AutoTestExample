@@ -1,86 +1,86 @@
 using NUnit.Framework;
 using System.Threading.Tasks;
-using TestContainers.Container.Abstractions.Hosting;
-using TestContainers.Container.Database.PostgreSql;
 
 using NSubstitute;
 using Microsoft.Extensions.Logging;
 using WebProShop.Data.Migration;
 using System.Collections.Generic;
+using Testcontainers.PostgreSql;
 
-namespace IntegrationTests
+namespace IntegrationTests;
+
+public class PostgreSqlMigrationTests
 {
-    public class PostgreSqlMigrationTests
+    private PostgreSqlContainer container;
+    private List<string> migrations;
+
+    [OneTimeSetUp]
+    public async Task Setup()
     {
-        private PostgreSqlContainer container;
-        private List<string> migrations;
+        // Create a new PostgreSQL container with the specified username and password
+        container = new PostgreSqlBuilder()
+            .WithImage("postgres:13.3-alpine")
+            .WithUsername("postgres")
+            .WithPassword("postgres")
+            .WithDatabase("postgres")
+            .Build();
 
-        [OneTimeSetUp]
-        public async Task Setup()
+        await container.StartAsync();
+
+        var migration = new PostgreSqlMigration(container.GetConnectionString(), Substitute.For<ILogger<PostgreSqlMigration>>());
+
+        migrations = await migration.Migrate(default);
+    }
+
+    private async Task<Npgsql.NpgsqlConnection> GetConnectionAsync()
+    {
+        var result = new Npgsql.NpgsqlConnection(container.GetConnectionString());
+        await result.OpenAsync();
+        return result;
+    }
+
+    [OneTimeTearDown]
+    public async Task TearDown()
+    {
+        if (container != null)
         {
-            // Create a new PostgreSQL container with the specified username and password
-            container = new ContainerBuilder<PostgreSqlContainer>()
-                    .ConfigureDockerImageName("postgres:13.3-alpine")
-                    .ConfigureContainer((h, p) => { p.Password = "postgres"; p.Username = "postgres"; })
-                    .Build();
-
-            await container.StartAsync();
-
-            var migration = new PostgreSqlMigration(container.GetConnectionString(), Substitute.For<ILogger<PostgreSqlMigration>>());
-
-            migrations = await migration.Migrate(default);
+            await container.StopAsync();
         }
+    }
 
-        private async Task<Npgsql.NpgsqlConnection> GetConnectionAsync()
-        {
-            var result = new Npgsql.NpgsqlConnection(container.GetConnectionString());
-            await result.OpenAsync();
-            return result;
-        }
+    [Test]
+    public void Migrate_MigrationsOk()
+    {
+        // Arrange
+        // Act
+        // Assert
+        Assert.That(migrations, Is.EqualTo(new []{"v1_0__Init.sql"}));
+    }
 
-        [OneTimeTearDown]
-        public async Task TearDown()
-        {
-            if (container != null)
-            {
-                await container.StopAsync();
-            }
-        }
+    [TestCase("product")]
+    [TestCase("shopping_cart")]
+    [TestCase("shopping_cart_line")]
+    public async Task Database_HasTable(string tableName)
+    {
+        // Arrange
+        await using var connection = await GetConnectionAsync();
 
-        [Test]
-        public void Migrate_MigrationsOk()
-        {
-            // Arrange
-            // Act
-            // Assert
-            Assert.That(migrations, Is.EqualTo(new string[] { "v1_0__Init.sql" }));
-        }
+        // Act
+        // Assert
+        Assert.That(connection, Database.HasTable(tableName));
+    }
 
-        [TestCase("product")]
-        [TestCase("shopping_cart")]
-        [TestCase("shopping_cart_line")]
-        public async Task Database_HasTable(string tableName)
-        {
-            // Arrange
-            await using var connection = await GetConnectionAsync();
+    [TestCase("product", "id")]
+    [TestCase("product", "name")]
+    [TestCase("product", "description")]
+    [TestCase("product", "price")]
+    public async Task Table_HasColumn(string table, string column)
+    {
+        // Arrange
+        await using var connection = await GetConnectionAsync();
 
-            // Act
-            // Assert
-            Assert.That(connection, Database.HasTable(tableName));
-        }
-
-        [TestCase("product", "id")]
-        [TestCase("product", "name")]
-        [TestCase("product", "description")]
-        [TestCase("product", "price")]
-        public async Task Table_HasColumn(string table, string column)
-        {
-            // Arrange
-            await using var connection = await GetConnectionAsync();
-
-            // Act
-            // Assert
-            Assert.That(connection, Database.HasTable(table).Column(column));
-        }
+        // Act
+        // Assert
+        Assert.That(connection, Database.HasTable(table).Column(column));
     }
 }

@@ -1,0 +1,22 @@
+
+[*]
+
+# Microsoft .NET properties
+csharp_preferred_modifier_order = private, public, protected, internal, static, extern, new, virtual, async, abstract, override, sealed, unsafe, volatile, readonly, file, required:suggestion
+csharp_preserve_single_line_blocks = true
+dotnet_sort_system_directives_first = false
+
+# ReSharper properties
+resharper_blank_lines_after_multiline_statements = 1
+resharper_braces_for_ifelse = required
+resharper_braces_redundant = false
+resharper_csharp_insert_final_newline = true
+resharper_csharp_keep_existing_enum_arrangement = false
+resharper_csharp_max_line_length = 237
+resharper_csharp_remove_blank_lines_near_braces_in_code = false
+resharper_csharp_remove_blank_lines_near_braces_in_declarations = false
+resharper_instance_members_qualify_declared_in = 
+resharper_place_expr_property_on_single_line = true
+resharper_space_after_attributes = false
+resharper_space_before_catch_parentheses = false
+resharper_space_before_if_parentheses = false

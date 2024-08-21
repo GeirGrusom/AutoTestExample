@@ -1,22 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
-namespace WebProShop.Data.Models
+namespace WebProShop.Data.Models;
+
+public sealed class Product(Guid id)
 {
-    public sealed class Product
-    {
-        public Product(Guid id)
-        {
-            Id = id;
-            Name = "";
-            Description = "";
-        }
+    public Guid Id { get; } = id;
 
-        public Guid Id { get; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public decimal Price { get; set; }
-    }
+    [MaxLength(100)]
+    public string Name { get; set; }
+
+    [MaxLength(250)]
+    public string Description { get; set; }
+
+    [Range(typeof(decimal), minimum: "0", maximum: "1000000")]
+    public decimal Price { get; set; }
 }

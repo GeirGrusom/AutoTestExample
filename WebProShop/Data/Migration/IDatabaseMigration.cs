@@ -2,10 +2,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace WebProShop.Data.Migration
+namespace WebProShop.Data.Migration;
+
+public interface IDatabaseMigration
 {
-    public interface IDatabaseMigration
-    {
-        Task<List<string>> Migrate(CancellationToken cancel);
-    }
+    Task<List<string>> Migrate(CancellationToken cancel);
 }

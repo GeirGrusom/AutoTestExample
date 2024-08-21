@@ -1,20 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
-namespace WebProShop.Data.Models
+namespace WebProShop.Data.Models;
+
+public sealed class ShoppingCart(Guid id)
 {
-    public sealed class ShoppingCart
-    {
-        public ShoppingCart(Guid id)
-        {
-            Id = id;
-            Lines = new List<ShoppingCartLine>();
-        }
+    public Guid Id { get; } = id;
 
-        public Guid Id { get; }
-
-        public List<ShoppingCartLine> Lines { get; }
-    }
+    [MaxLength(100)]
+    public List<ShoppingCartLine> Lines { get; } = [];
 }

@@ -1,6 +1,6 @@
 ﻿using System;
+// ReSharper disable NotAccessedPositionalProperty.Global
 
-namespace WebProShop.Controllers
-{
-    public record ProductResult(Guid id, string Name, string Description, decimal Price);
-}
+namespace WebProShop.Models;
+
+public record ProductResult(Guid Id, string Name, string Description, decimal Price);

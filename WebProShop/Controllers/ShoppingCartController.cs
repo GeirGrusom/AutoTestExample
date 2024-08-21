@@ -8,82 +8,76 @@ using System.Threading.Tasks;
 using WebProShop.Data;
 using WebProShop.Data.Models;
 
-namespace WebProShop.Controllers
+namespace WebProShop.Controllers;
+
+[ApiController]
+[Route("shopping-carts")]
+public sealed class ShoppingCartController(IQueryable<ShoppingCart> shoppingCarts) : ControllerBase
 {
-    [ApiController]
-    [Route("shopping-carts")]
-    public sealed class ShoppingCartController : ControllerBase
+    [HttpGet("{id:Guid}", Name = "GetShoppingCartById")]
+    public async Task<IActionResult> GetShoppingCartById(Guid id)
     {
-        private readonly IQueryable<ShoppingCart> shoppingCarts;
-
-        public ShoppingCartController(IQueryable<ShoppingCart> shoppingCarts)
+        if(id == default)
         {
-            this.shoppingCarts = shoppingCarts;
+            return BadRequest();
         }
 
-        [HttpGet("id:{Guid}", Name = "GetShoppingCartById")]
-        public async Task<IActionResult> Get(Guid id)
+        var result = await shoppingCarts
+            .Where(x => x.Id == id)
+            .Select(Map)
+            .SingleOrDefaultAsync();
+
+        if(result is null)
         {
-            if(id == default)
-            {
-                return BadRequest();
-            }
-
-            var result = await shoppingCarts
-                .Where(x => x.Id == id)
-                .Select(Map)
-                .SingleOrDefaultAsync();
-
-            if(result is null)
-            {
-                return NotFound();
-            }
-
-            return Ok(result);
+            return NotFound();
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Post([FromServices]IUnitOfWork unitOfWork)
-        {
-            var shoppingCart = new ShoppingCart(Guid.NewGuid());
-            unitOfWork.Add(shoppingCart);
-            await unitOfWork.SaveChangesAsync();
-            await unitOfWork.CommitAsync();
-
-            return CreatedAtAction("GetShoppingCartById", new { id = shoppingCart.Id }, new ShoppingCartResult(shoppingCart.Id, new List<ShoppingCartItemResult>()));
-        }
-
-        [HttpPut("{id:Guid}")]
-        public async Task<IActionResult> Put([FromRoute]Guid id, [FromBody] UpdateShoppingCartRequest request, [FromServices]IUnitOfWork unitOfWork)
-        {
-            var shoppingCart = await shoppingCarts.SingleOrDefaultAsync(x => x.Id == id);
-
-            if(shoppingCart is null)
-            {
-                return NotFound();
-            }
-
-            shoppingCart.Lines.Clear();
-            unitOfWork.Update(shoppingCart);
-            await unitOfWork.SaveChangesAsync();
-
-            foreach (var (item, index) in request.Lines.Select((x,y) => (item: x, index:y)))
-            {
-                var newLine = new ShoppingCartLine(index) { Product = new Product(item.Key), Amount = item.Value };
-                shoppingCart.Lines.Add(newLine);
-            }
-
-            unitOfWork.Update(shoppingCart);
-            await unitOfWork.CommitAsync();
-
-            return Ok(await shoppingCarts.Where(x => x.Id == id).Select(Map).SingleAsync());
-        }
-
-        private static readonly Expression<Func<ShoppingCart, ShoppingCartResult>> Map = x => new ShoppingCartResult(x.Id, x.Lines.Select(l => new ShoppingCartItemResult(l.Id, l.Amount, l.Amount * l.Product.Price, l.Product.Name)).ToList());
+        return Ok(result);
     }
 
-    public sealed record ShoppingCartItemResult(int Id, int Amount, decimal TotalPrice, string Name);
+    [HttpPost]
+    public async Task<IActionResult> Post([FromServices]IUnitOfWork unitOfWork)
+    {
+        var shoppingCart = new ShoppingCart(Guid.NewGuid());
+        unitOfWork.Add(shoppingCart);
+        await unitOfWork.SaveChangesAsync();
+        await unitOfWork.CommitAsync();
 
-    public sealed record ShoppingCartResult(Guid Id, List<ShoppingCartItemResult> Lines);
-    
+        return CreatedAtAction(nameof(GetShoppingCartById), new { id = shoppingCart.Id }, new ShoppingCartResult(shoppingCart.Id, new List<ShoppingCartItemResult>()));
+    }
+
+    [HttpPut("{id:Guid}")]
+    public async Task<IActionResult> Put([FromRoute]Guid id, [FromBody] UpdateShoppingCartRequest request, [FromServices]IUnitOfWork unitOfWork)
+    {
+        var shoppingCart = await shoppingCarts.SingleOrDefaultAsync(x => x.Id == id);
+
+        if(shoppingCart is null)
+        {
+            return NotFound();
+        }
+
+        shoppingCart.Lines.Clear();
+        unitOfWork.Update(shoppingCart);
+        await unitOfWork.SaveChangesAsync();
+
+        foreach (var (item, index) in request.Lines.Select((x,y) => (item: x, index:y)))
+        {
+            var newLine = new ShoppingCartLine(index) { Product = new Product(item.Key), Amount = item.Value };
+            shoppingCart.Lines.Add(newLine);
+        }
+
+        unitOfWork.Update(shoppingCart);
+        await unitOfWork.CommitAsync();
+
+        return Ok(await shoppingCarts.Where(x => x.Id == id).Select(Map).SingleAsync());
+    }
+
+    private static readonly Expression<Func<ShoppingCart, ShoppingCartResult>> Map = x => new ShoppingCartResult(x.Id, x.Lines.Select(l => new ShoppingCartItemResult(l.Id, l.Amount, l.Amount * l.Product.Price, l.Product.Name)).ToList());
 }
+
+// ReSharper disable NotAccessedPositionalProperty.Global
+public sealed record ShoppingCartItemResult(int Id, int Amount, decimal TotalPrice, string Name);
+
+public sealed record ShoppingCartResult(Guid Id, List<ShoppingCartItemResult> Lines);
+
+// ReSharper restore NotAccessedPositionalProperty.Global

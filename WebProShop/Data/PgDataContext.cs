@@ -1,106 +1,88 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using WebProShop.Data.Models;
 
-namespace WebProShop.Data
+namespace WebProShop.Data;
+
+public class PgDataContext(string connectionString) : DbContext
 {
-    public class PgDataContext : DbContext
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        private readonly string connectionString;
+        optionsBuilder
+            .UseNpgsql(connectionString)
+            .UseSnakeCaseNamingConvention();
+    }
 
-        public PgDataContext(string connectionString)
+    public IUnitOfWork CreateUnitOfWork() => new UnitOfWork(this);
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder
+            .Entity<Product>(m =>
+            {
+                m.HasKey(x => x.Id);
+                m.Property(x => x.Name);
+                m.Property(x => x.Description);
+                m.Property(x => x.Price);
+            })
+            .Entity<ShoppingCart>(m =>
+            {
+                m.HasKey(x => x.Id);
+                m.HasMany(x => x.Lines).WithOne();
+            })
+            .Entity<ShoppingCartLine>(m =>
+            {
+                m.HasKey("ShoppingCartId", "Id");
+                m.Property(x => x.Amount);
+            })
+        ;
+    }
+
+    private sealed class UnitOfWork(PgDataContext context) : IUnitOfWork
+    {
+        private readonly Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = context.Database.BeginTransaction();
+        private bool isCommitted;
+
+        public void Add<T>(T item)
         {
-            this.connectionString = connectionString;
+            context.Add(item);
         }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public Task CommitAsync()
         {
-            optionsBuilder
-                .UseNpgsql(connectionString)
-                .UseSnakeCaseNamingConvention();
+            isCommitted = true;
+            return transaction.CommitAsync();
         }
 
-        public IUnitOfWork CreateUnitOfWork() => new UnitOfWork(this);
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        public async ValueTask DisposeAsync()
         {
-            modelBuilder
-                .Entity<Product>(m =>
-                {
-                    m.HasKey(x => x.Id);
-                    m.Property(x => x.Name);
-                    m.Property(x => x.Description);
-                    m.Property(x => x.Price);
-                })
-                .Entity<ShoppingCart>(m =>
-                {
-                    m.HasKey(x => x.Id);
-                    m.HasMany(x => x.Lines).WithOne();
-                })
-                .Entity<ShoppingCartLine>(m =>
-                {
-                    m.HasKey("ShoppingCartId", "Id");
-                    m.Property(x => x.Amount);
-                })
-            ;
+            if(isCommitted)
+            {
+                return;
+            }
+
+            await transaction.RollbackAsync();
         }
 
-        private class UnitOfWork : IUnitOfWork
+        public void Remove<T>(T item)
         {
-            private readonly PgDataContext context;
-            private readonly Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction;
-            private bool isCommitted;
+            context.Remove(item);
+        }
 
-            public UnitOfWork(PgDataContext context)
-            {
-                this.context = context;
-                this.transaction = context.Database.BeginTransaction();
-            }
+        public Task RollbackAsync()
+        {
+            isCommitted = true;
+            return transaction.RollbackAsync();
+        }
 
-            public void Add<T>(T item)
-            {
-                context.Add(item);
-            }
+        public Task SaveChangesAsync()
+        {
+            return context.SaveChangesAsync();
+        }
 
-            public Task CommitAsync()
-            {
-                isCommitted = true;
-                return this.transaction.CommitAsync();
-            }
-
-            public async ValueTask DisposeAsync()
-            {
-                if(isCommitted)
-                {
-                    return;
-                }
-
-                await this.transaction.RollbackAsync();
-            }
-
-            public void Remove<T>(T item)
-            {
-                this.context.Remove(item);
-            }
-
-            public Task RollbackAsync()
-            {
-                isCommitted = true;
-                return transaction.RollbackAsync();
-            }
-
-            public Task SaveChangesAsync()
-            {
-                return context.SaveChangesAsync();
-            }
-
-            public void Update<T>(T item)
-            {
-                context.Update(item);
-            }
+        public void Update<T>(T item)
+        {
+            context.Update(item);
         }
     }
 }

@@ -1,30 +1,26 @@
 ﻿using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using TestContainers.Container.Abstractions.Hosting;
-using TestContainers.Container.Database.Hosting;
-using TestContainers.Container.Database.PostgreSql;
+using Testcontainers.PostgreSql;
 using WebProShop.Data;
 using WebProShop.Data.Migration;
 
-namespace IntegrationTests
-{
-    public abstract class PostgreDbContextBase
-    {
-        private PostgreSqlContainer container;
+namespace IntegrationTests;
 
-        [OneTimeSetUp]
-        public async Task Setup()
-        {
+public abstract class PostgreDbContextBase
+{
+    private PostgreSqlContainer container;
+
+    [OneTimeSetUp]
+    public async Task Setup()
+    {
             // Create a new PostgreSQL container with the specified username and password
-            container = new ContainerBuilder<PostgreSqlContainer>()
-                    .ConfigureDatabaseConfiguration("postgres", "postgres", "postgres")
-                    .Build();
+            container = new PostgreSqlBuilder()
+                .WithUsername("postgres")
+                .WithPassword("postgres")
+                .WithDatabase("postgres")
+                .Build();
 
             await container.StartAsync();
 
@@ -33,18 +29,17 @@ namespace IntegrationTests
             await migration.Migrate(default);
         }
 
-        protected PgDataContext GetContext()
-        {
+    protected PgDataContext GetContext()
+    {
             return new PgDataContext(container.GetConnectionString());
         }
 
-        [OneTimeTearDown]
-        public async Task TearDown()
+    [OneTimeTearDown]
+    public async Task TearDown()
+    {
+        if (container != null)
         {
-            if (container != null)
-            {
-                await container.StopAsync();
-            }
+            await container.StopAsync();
         }
     }
 }

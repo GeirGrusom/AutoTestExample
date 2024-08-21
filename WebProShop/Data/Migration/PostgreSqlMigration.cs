@@ -1,40 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Evolve;
+using EvolveDb;
 using Microsoft.Extensions.Logging;
 
-namespace WebProShop.Data.Migration
+namespace WebProShop.Data.Migration;
+
+public sealed class PostgreSqlMigration(string connectionString, ILogger<PostgreSqlMigration> logger)
+    : IDatabaseMigration
 {
-    public sealed class PostgreSqlMigration : IDatabaseMigration
+    private readonly string connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
+
+    public async Task<List<string>> Migrate(CancellationToken cancel)
     {
-        private readonly string connectionString;
-        private readonly ILogger<PostgreSqlMigration> logger;
+        await using var conn = new Npgsql.NpgsqlConnection(connectionString);
+        await conn.OpenAsync(cancel);
 
-        public PostgreSqlMigration(string connectionString, ILogger<PostgreSqlMigration> logger)
+        var ev = new Evolve(conn, str => logger.LogInformation(str))
         {
-            this.connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
-            this.logger = logger;
-        }
+            EmbeddedResourceAssemblies = new[] { typeof(PostgreSqlMigration).Assembly },
+            EmbeddedResourceFilters = new[] { "WebProShop.Data.Migration.PostgreSql" }
+        };
 
-        public async Task<List<string>> Migrate(CancellationToken cancel)
-        {
-            using var conn = new Npgsql.NpgsqlConnection(connectionString);
-            await conn.OpenAsync();
+        await Task.Run(ev.Migrate, cancel);
 
-            var ev = new Evolve.Evolve(conn, str => this.logger.LogInformation(str))
-            {
-                EmbeddedResourceAssemblies = new[] { typeof(PostgreSqlMigration).Assembly },
-                EmbeddedResourceFilters = new[] { "WebProShop.Data.Migration.PostgreSql" }
-            };
+        await conn.ReloadTypesAsync();
 
-            await Task.Run(ev.Migrate, cancel);
-
-            conn.ReloadTypes();
-
-            return ev.AppliedMigrations;
-        }
+        return ev.AppliedMigrations;
     }
 }
